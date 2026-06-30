@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confidential Case File: Project Status Report</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Thematic Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #1a1a1a;
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Courier Prime', monospace;
+            color: #111;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* The Manila Folder Look */
+        .folder-container {
+            background-color: #e8dbb5;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 40px 50px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.1), 5px 5px 15px rgba(0,0,0,0.5);
+            border-radius: 2px 15px 5px 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top Secret Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 8rem;
+            color: rgba(200, 50, 50, 0.15);
+            font-family: 'Special Elite', cursive;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            letter-spacing: 10px;
+            border: 8px solid rgba(200, 50, 50, 0.15);
+            padding: 20px;
+        }
+
+        /* Typography & Inputs */
+        h1, h2, h3, .typewriter {
+            font-family: 'Special Elite', cursive;
+            position: relative;
+            z-index: 1;
+        }
+
+        input[type="text"], input[type="date"], textarea {
+            background: transparent;
+            border: none;
+            border-bottom: 2px dashed #777;
+            width: 100%;
+            font-family: 'Courier Prime', monospace;
+            font-size: 1rem;
+            color: #000;
+            padding: 5px;
+            outline: none;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+
+        input:focus, textarea:focus {
+            border-bottom: 2px solid #a00;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Custom Radio Buttons (Stamps) */
+        .suspect-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .suspect-grid input[type="radio"] {
+            display: none;
+        }
+
+        .suspect-grid label {
+            display: block;
+            padding: 10px 15px;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .suspect-grid label::before {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* The 'Stamp' Animation when selected */
+        .suspect-grid input[type="radio"]:checked + label {
+            border-color: #a00;
+            color: #a00;
+            font-weight: bold;
+            background-color: rgba(170, 0, 0, 0.05);
+            transform: scale(1.02);
+            box-shadow: inset 0 0 10px rgba(170, 0, 0, 0.1);
+            animation: stampIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .suspect-grid input[type="radio"]:checked + label::before {
+            background-color: #a00;
+            border-color: #a00;
+            box-shadow: inset 0 0 0 3px #e8dbb5;
+        }
+
+        @keyframes stampIn {
+            0% { transform: scale(1.5); opacity: 0; }
+            100% { transform: scale(1.02); opacity: 1; }
+        }
+
+        .highlight-anim {
+            animation: pulseRed 1s;
+        }
+        @keyframes pulseRed {
+            0% { box-shadow: 0 0 0px #a00; }
+            50% { box-shadow: 0 0 20px #a00; }
+            100% { box-shadow: 0 0 0px #a00; }
+        }
+
+        /* Paperclip decoration */
+        .paperclip {
+            position: absolute;
+            top: -10px;
+            left: 40px;
+            font-size: 40px;
+            color: #888;
+            transform: rotate(-15deg);
+            z-index: 10;
+        }
+
+        /* Buttons */
+        .btn-export {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #2c2c2c;
+            color: #e8dbb5;
+            font-family: 'Special Elite', cursive;
+            font-size: 1.2rem;
+            border: 2px solid #555;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s;
+            box-shadow: 4px 4px 0px #111;
+        }
+
+        .btn-export:hover {
+            background-color: #111;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #000;
+        }
+
+        .btn-export:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #000;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+            page-break-inside: avoid; /* Prevents sections from splitting awkwardly across PDF pages */
+        }
+
+        /* PDF Export Mode Styles (applied via JS during export to clean up edges) */
+        .pdf-export-mode {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            max-width: 800px !important;
+        }
+        .pdf-export-mode .paperclip {
+            display: none !important; /* Hide paperclip in PDF */
+        }
+        .pdf-export-mode textarea {
+            resize: none;
+        }
+
+        /* Print Specific Styles */
+        @media print {
+            body { background: none; }
+            .folder-container { box-shadow: none; max-width: 100%; margin: 0; }
+            .btn-export { display: none; }
+            .music-btn { display: none; } 
+            input, textarea { border-bottom: 1px solid #000; }
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            color: #0f0;
+            font-family: 'Courier Prime', monospace;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid #333;
+            border-top: 5px solid #0f0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Music Player Button */
+        .music-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #2c2c2c;
+            color: #e8dbb5;
+            border: 2px solid #555;
+            padding: 10px 15px;
+            font-family: 'Special Elite', cursive;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s;
+            box-shadow: 2px 2px 0px #111;
+        }
+        
+        .music-btn:hover {
+            background-color: #111;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Atmospheric Background Music (Cinematic Mystery Track) -->
+    <audio id="bg-music" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-cinematic-mystery-suspense-movie-trailer-115.mp3" type="audio/mpeg">
+    </audio>
+    <button class="music-btn" onclick="toggleMusic()" id="music-toggle">
+        🎵 Play Music
+    </button>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <h2>Processing Case File...</h2>
+        <p class="mt-2 text-sm text-green-700">Encrypting PDF connection</p>
+    </div>
+
+    <div class="folder-container" id="report-form">
+        <div class="watermark">CONFIDENTIAL</div>
+        <div class="paperclip">📎</div>
+        
+        <!-- Header -->
+        <div class="border-b-4 border-gray-800 pb-4 mb-6">
+            <h1 class="text-3xl font-bold tracking-widest text-center">PROJECT STATUS REPORT</h1>
+            <p class="text-center text-sm mt-1 italic">Case File #<span id="case-number"></span></p>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-6 mb-8 form-group">
+            <div class="flex-1">
+                <label class="font-bold typewriter block mb-2">Date Of Report:</label>
+                <input type="date" class="w-full">
+            </div>
+            <div class="flex-1">
+                <label class="font-bold typewriter block mb-2">Link/QR to Recorded Discussion:</label>
+                <input type="text" placeholder="Enter URL here..." class="w-full">
+            </div>
+        </div>
+
+        <!-- Section A: Pathogen Selection -->
+        <div class="form-group border-t-2 border-dashed border-gray-500 pt-6">
+            <h2 class="text-xl font-bold mb-2">A. PRIME SUSPECT IDENTIFICATION</h2>
+            <p class="text-sm mb-4">Based on information shared and team discussion, which of these pathogens were the possible cause of death for the patient? <span class="text-red-700 font-bold">(Select only one definitive target)</span></p>
+            
+            <div class="suspect-grid">
+                <div>
+                    <input type="radio" id="subtilis" name="pathogen" value="Bacillus subtilis">
+                    <label for="subtilis">Bacillus subtilis</label>
+                </div>
+                <div>
+                    <input type="radio" id="thuriengiensis" name="pathogen" value="Bacillus thuriengiensis">
+                    <label for="thuriengiensis">Bacillus thuriengiensis</label>
+                </div>
+                <div>
+                    <input type="radio" id="anthracis" name="pathogen" value="Bacillus anthracis">
+                    <label for="anthracis">Bacillus anthracis</label>
+                </div>
+                <div>
+                    <input type="radio" id="cereus" name="pathogen" value="Bacillus cereus">
+                    <label for="cereus">Bacillus cereus</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section B: Rationale -->
+        <div class="form-group border-t-2 border-dashed border-gray-500 pt-6 mt-6">
+            <h2 class="text-xl font-bold mb-2">B. DETECTIVE'S RATIONALE</h2>
+            <p class="font-bold mb-2 text-sm">State why/how your team concluded the pathogen in (A).</p>
+            <textarea rows="3" placeholder="Enter findings here..." class="mb-4"></textarea>
+            <textarea rows="3" placeholder="Additional notes..." class="mb-6"></textarea>
+
+            <p class="font-bold mb-2 text-sm">Did your team identify the pathogen as a different species? If yes, state the identity and explain why.</p>
+            <textarea rows="4" placeholder="Clarify discrepancies here..."></textarea>
+        </div>
+
+        <!-- Signatories -->
+        <div class="form-group border-t-2 border-dashed border-gray-500 pt-6 mt-6">
+            <h2 class="text-xl font-bold mb-4">SIGNATORIES (INVESTIGATIVE TEAM)</h2>
+            <div class="grid grid-columns-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="flex items-end"><span class="mr-2">1. Matric No:</span> <input type="text" class="flex-1"></div>
+                <div class="flex items-end"><span class="mr-2">2. Matric No:</span> <input type="text" class="flex-1"></div>
+                <div class="flex items-end"><span class="mr-2">3. Matric No:</span> <input type="text" class="flex-1"></div>
+                <div class="flex items-end"><span class="mr-2">4. Matric No:</span> <input type="text" class="flex-1"></div>
+                <div class="flex items-end"><span class="mr-2">5. Matric No:</span> <input type="text" class="flex-1"></div>
+                <div class="flex items-end"><span class="mr-2">6. Matric No:</span> <input type="text" class="flex-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Button (Outside the form so it doesn't print) -->
+    <button class="btn-export max-w-[800px] mx-auto" onclick="generatePDF()">
+        <span class="mr-2">🖨️</span> File Report (Export to PDF)
+    </button>
+
+    <script>
+        // Flag to prevent double-clicking from crashing the audio
+        let isMusicStateChanging = false;
+
+        // Music Toggle Function with Error Handling and Click Guard
+        function toggleMusic() {
+            if (isMusicStateChanging) return; // Ignore clicks if already trying to play/pause
+            
+            const music = document.getElementById('bg-music');
+            const btn = document.getElementById('music-toggle');
+            
+            if (music.paused) {
+                isMusicStateChanging = true;
+                btn.innerHTML = '⌛ Loading...'; // Visual feedback
+                
+                const playPromise = music.play();
+                
+                // Handle the browser's audio promise to prevent silent failures
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        isMusicStateChanging = false;
+                        btn.innerHTML = '⏸️ Pause Music';
+                        btn.style.borderColor = '#a00';
+                    }).catch(error => {
+                        isMusicStateChanging = false;
+                        console.error("Audio playback blocked by browser:", error);
+                        btn.innerHTML = '⚠️ Click again to play';
+                    });
+                } else {
+                    isMusicStateChanging = false;
+                }
+            } else {
+                music.pause();
+                btn.innerHTML = '🎵 Play Music';
+                btn.style.borderColor = '#555';
+            }
+        }
+
+        // Generate a random case number on load
+        document.getElementById('case-number').innerText = Math.floor(100000 + Math.random() * 900000) + "-XYZ";
+
+        // Add a typing sound effect simulation to inputs
+        const inputs = document.querySelectorAll('input[type="text"], textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                // You can add a subtle audio pop here if you host a short tick sound
+                // Just keeping the visual interaction for now to keep performance light.
+            });
+        });
+
+        // PDF Generation Function
+        function generatePDF() {
+            // Validate basic inputs (check if a pathogen was selected)
+            let pathogenSelected = document.querySelector('input[name="pathogen"]:checked');
+            if(!pathogenSelected) {
+                // Visually highlight the missing section
+                document.querySelector('.suspect-grid').classList.add('highlight-anim');
+                setTimeout(() => document.querySelector('.suspect-grid').classList.remove('highlight-anim'), 1000);
+                // Optional: alert('Please identify the prime suspect before filing the report.');
+            }
+
+            const element = document.getElementById('report-form');
+            const overlay = document.getElementById('loading-overlay');
+            
+            // Show loading
+            overlay.style.display = 'flex';
+
+            // CRITICAL FIX: Physically scroll to the top-left before generating
+            // This prevents all cropping and margin issues caused by user scrolling!
+            window.scrollTo(0, 0);
+
+            // Temporarily apply PDF-friendly styles (removes box shadow etc)
+            element.classList.add('pdf-export-mode');
+
+            // Configure PDF options
+            const opt = {
+                margin:       10, // 10mm margins
+                filename:     `Case_Report_${document.getElementById('case-number').innerText}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'] } // Respects the page-break-inside: avoid CSS rule
+            };
+            
+            // Generate PDF
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Remove PDF-friendly styles once finished
+                element.classList.remove('pdf-export-mode');
+                // Hide loading overlay after generation
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 1000);
+            }).catch(err => {
+                console.error("PDF Generation Error: ", err);
+                element.classList.remove('pdf-export-mode');
+                overlay.innerHTML = "<h2>Error generating file.</h2><button onclick='location.reload()' style='margin-top:20px; padding:10px; color:black; background:#0f0;'>Reload Page</button>";
+            });
+        }
+    </script>
+</body>
+</html>
